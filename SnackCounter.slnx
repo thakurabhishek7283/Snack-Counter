@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SnackCounter.Api/SnackCounter.Api.csproj" />
+    <Project Path="src/SnackCounter.Application/SnackCounter.Application.csproj" />
+    <Project Path="src/SnackCounter.Domain/SnackCounter.Domain.csproj" />
+    <Project Path="src/SnackCounter.Infrastructure/SnackCounter.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SnackCounter.Application.Tests/SnackCounter.Application.Tests.csproj" />
+    <Project Path="tests/SnackCounter.Domain.Tests/SnackCounter.Domain.Tests.csproj" />
+    <Project Path="tests/SnackCounter.Integration.Tests/SnackCounter.Integration.Tests.csproj" />
+  </Folder>
+</Solution>
