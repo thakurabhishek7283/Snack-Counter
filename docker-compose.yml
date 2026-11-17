@@ -1,0 +1,48 @@
+# Everything:           docker compose up --build        then open http://localhost:8080
+# Just the database:    docker compose up -d db          and run the API locally with --launch-profile postgres
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: snack
+      POSTGRES_USER: snack
+      POSTGRES_PASSWORD: snack
+    ports:
+      - "5432:5432"
+    volumes:
+      - snack-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U snack -d snack"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: src/SnackCounter.Api/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Persistence__Provider: Postgres
+      # GSS (Kerberos) encryption isn't used; disabling it stops Npgsql probing for a library the slim image lacks.
+      ConnectionStrings__Snack: Host=db;Port=5432;Database=snack;Username=snack;Password=snack;GSS Encryption Mode=Disable
+      Database__MigrateOnStartup: "true"
+      Seed__Demo: "true"
+      # Demo controls (simulated chat and HR inbox, movable clock). Turn off for a real deployment.
+      DevTools__Enabled: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "5252:8080"
+
+  web:
+    build:
+      context: web/snack-counter-ui
+    depends_on:
+      - api
+    ports:
+      - "8080:80"
+
+volumes:
+  snack-db:
