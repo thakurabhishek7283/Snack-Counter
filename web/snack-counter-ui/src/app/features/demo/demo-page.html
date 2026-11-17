@@ -1,0 +1,92 @@
+<div class="page">
+  <header class="page-head">
+    <h1>Demo controls</h1>
+    <p>The chat tool and HR system are simulated. Answer as them here, and move the clock to show timeouts.</p>
+  </header>
+
+  @if (unavailable()) {
+    <div class="panel"><p>Demo controls are only available when the API runs in Development.</p></div>
+  }
+
+  <div class="grid">
+    <section class="panel chat" aria-labelledby="chat-title">
+      <h2 id="chat-title">Chat tool</h2>
+      <form class="command" (ngSubmit)="sendCommand()">
+        <label class="visually-hidden" for="command">Chat command</label>
+        <input id="command" name="command" [(ngModel)]="command" placeholder="/snacks empty" />
+        <button type="submit" class="btn btn-small">Send as {{ session.me()?.displayName }}</button>
+      </form>
+      <p class="small muted">Try /snacks empty, /snacks status, or /snacks away 2026-11-23 2026-11-27.</p>
+
+      <ul class="feed">
+        @for (m of messages(); track m.sentAt + m.text) {
+          <li [class]="'msg msg-' + m.audience.kind">
+            <div class="msg-head"><strong>{{ audience(m) }}</strong><span class="muted small">{{ when(m.sentAt) }}</span></div>
+            <p>{{ m.text }}</p>
+            @if (m.actions.length) {
+              <div class="actions">
+                @for (a of m.actions; track a.value) {
+                  <button type="button" class="btn btn-small" [class.btn-primary]="a.value.startsWith('accept')" (click)="press(m, a)">{{ a.label }}</button>
+                }
+              </div>
+            }
+          </li>
+        } @empty {
+          <li class="muted">No messages yet. Report an empty box to start.</li>
+        }
+      </ul>
+    </section>
+
+    <div class="side">
+      <section class="panel" aria-labelledby="clock-title">
+        <h2 id="clock-title">Clock</h2>
+        <ul class="times">
+          @for (o of offices(); track o.id) {
+            <li><strong>{{ officeNow(o.timeZoneId) }}</strong> in {{ o.name }}</li>
+          }
+        </ul>
+        <div class="actions">
+          <button type="button" class="btn btn-small" (click)="advance(30)">Forward 30 min</button>
+          <button type="button" class="btn btn-small" (click)="advance(125)">Forward 2 h</button>
+          <button type="button" class="btn btn-small" (click)="advance(1440)">Forward 1 day</button>
+          <button type="button" class="btn btn-small" (click)="advance(14400)">Forward 10 days</button>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="hr-title">
+        <h2 id="hr-title">HR system</h2>
+        @for (c of hrClaims(); track c.hrClaimId) {
+          <div class="claim">
+            <div>
+              <strong>{{ c.hrClaimId }}</strong> {{ c.amount }} {{ c.currency }} for {{ c.hrEmployeeId }}
+              <div class="small muted">{{ hrStatus(c.status) }}@if (c.comment) {: {{ c.comment }}}</div>
+            </div>
+            @if (c.status === 'Received') {
+              <div class="actions">
+                <button type="button" class="btn btn-small" (click)="hr(c, 'approve')">Approve</button>
+                <button type="button" class="btn btn-small btn-danger" (click)="hr(c, 'reject')">Reject</button>
+              </div>
+            }
+            @if (c.status === 'Approved') {
+              <button type="button" class="btn btn-small btn-primary" (click)="hr(c, 'pay')">Pay out</button>
+            }
+          </div>
+        } @empty {
+          <p class="muted">No claims yet. They arrive here when someone uploads a receipt.</p>
+        }
+      </section>
+
+      <section class="panel" aria-labelledby="jobs-title">
+        <h2 id="jobs-title">Background jobs</h2>
+        <ul class="jobs">
+          @for (j of jobs; track j.job) {
+            <li>
+              <button type="button" class="btn btn-small btn-quiet" (click)="run(j.job, j.label)">{{ j.label }}</button>
+              <span class="small muted">{{ j.what }}</span>
+            </li>
+          }
+        </ul>
+      </section>
+    </div>
+  </div>
+</div>

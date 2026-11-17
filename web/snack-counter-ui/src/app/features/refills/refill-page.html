@@ -1,0 +1,106 @@
+<div class="page">
+  <a class="back" routerLink="/">Back to snack boxes</a>
+
+  @if (notFound() && !details()) {
+    <div class="panel"><h1>Refill not found</h1><p>It may have been removed. Go back to the snack boxes to see what's current.</p></div>
+  }
+
+  @if (details(); as d) {
+    <header class="page-head">
+      <h1>{{ d.counterName }} box, {{ d.officeName }}</h1>
+      <span [class]="chipClass(refillChip(d.summary.status))">{{ refillChip(d.summary.status).label }}</span>
+    </header>
+
+    <div class="layout">
+      <div class="main">
+        @if (isActive()) {
+          <section class="panel">
+            <app-box-status [counterId]="d.summary.counterId" [refill]="d.summary" [timeZone]="timeZone()"
+                            [showDetailsLink]="false" (changed)="reload()" />
+          </section>
+        }
+
+        @if (canUpload()) {
+          <section class="panel" aria-labelledby="upload-title">
+            <h2 id="upload-title">Upload the receipt</h2>
+            <p class="muted">Your claim is sent to HR as soon as you save. You're paid back in your payroll currency.</p>
+            <form class="upload" (ngSubmit)="upload()">
+              <div class="form-row">
+                <div class="field">
+                  <label for="amount">Amount on the receipt ({{ currency() }})</label>
+                  <input id="amount" name="amount" type="number" min="0.01" step="0.01" inputmode="decimal" required [(ngModel)]="amount" />
+                </div>
+                <div class="field">
+                  <label for="receipt">Photo of the receipt</label>
+                  <input id="receipt" name="receipt" type="file" accept="image/*,application/pdf" required (change)="onFile($event)" />
+                </div>
+              </div>
+              <div class="field">
+                <label for="items">What you bought (optional)</label>
+                <input id="items" name="items" placeholder="Chips x2, Chocolate, Fruit" [(ngModel)]="items" />
+                <span class="hint">Helps us see which snacks actually get eaten.</span>
+              </div>
+              <div class="actions">
+                <button type="submit" class="btn btn-primary" [disabled]="saving()">{{ saving() ? 'Saving...' : 'Save receipt' }}</button>
+              </div>
+            </form>
+          </section>
+        }
+
+        @if (d.claim; as claim) {
+          <section class="panel claim" aria-labelledby="claim-title">
+            <h2 id="claim-title">Paying {{ claim.employeeName }} back</h2>
+            <p>
+              <span [class]="chipClass(claimChip(claim.status, claim.isOverdue))">{{ claimChip(claim.status, claim.isOverdue).label }}</span>
+              <strong class="claim-amount">{{ money(claim.amount, 2) }}</strong>
+            </p>
+            @if (claim.hrClaimId) { <p class="muted small">HR reference {{ claim.hrClaimId }}</p> }
+            @if (claim.rejectionReason) { <p>HR said: {{ claim.rejectionReason }}</p> }
+          </section>
+        }
+
+        @if (isAdmin() && isActive()) {
+          <section class="panel" aria-labelledby="cancel-title">
+            <h2 id="cancel-title">Cancel this refill</h2>
+            <form class="cancel" (ngSubmit)="cancel()">
+              <div class="field">
+                <label for="reason">Reason</label>
+                <input id="reason" name="reason" placeholder="False alarm, the box was full" [(ngModel)]="cancelReason" />
+              </div>
+              <button type="submit" class="btn btn-danger">Cancel refill</button>
+            </form>
+          </section>
+        }
+      </div>
+
+      <section class="history" aria-labelledby="history-title">
+        <h2 id="history-title">What happened</h2>
+        <ol class="timeline">
+          <li><span class="when">{{ at(d.summary.reportedAt) }}</span><span>{{ d.reportedByName }} reported the box empty</span></li>
+          @for (a of d.attempts; track a.offeredAt + a.employeeId) {
+            <li>
+              <span class="when">{{ at(a.offeredAt) }}</span>
+              <span>
+                @if (a.kind === 'Broadcast') { {{ a.name }} took it from the open call }
+                @else { {{ a.name }} was asked and {{ outcome(a.outcome) }} }
+                @if (a.explanation && a.kind === 'DirectedOffer') { <span class="why">Picked because: {{ a.explanation }}</span> }
+              </span>
+            </li>
+          }
+          @if (d.purchase; as p) {
+            <li class="done">
+              <span class="when">{{ at(p.purchasedAt) }}</span>
+              <span>
+                {{ p.buyerName }} bought {{ money(p.amount, 2) }} of snacks@if (p.isLate) {, after the deadline}
+                @if (p.items.length) { <span class="why">{{ itemsText(p.items) }}</span> }
+              </span>
+            </li>
+          }
+          @if (d.cancellationReason) {
+            <li><span class="when">{{ at(d.summary.closedAt) }}</span><span>Cancelled: {{ d.cancellationReason }}</span></li>
+          }
+        </ol>
+      </section>
+    </div>
+  }
+</div>

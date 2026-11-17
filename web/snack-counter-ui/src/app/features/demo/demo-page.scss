@@ -1,0 +1,19 @@
+.grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 24px; align-items: start; }
+.side { display: grid; gap: 20px; }
+h2 { margin-bottom: 10px; }
+
+.times { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 2px; font-variant-numeric: tabular-nums; }
+.command { display: flex; gap: 8px; margin-bottom: 6px; }
+.command input { flex: 1; min-width: 0; }
+
+.feed { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 10px; max-height: 70vh; overflow-y: auto; }
+.msg { padding: 12px 14px; border-radius: var(--radius-m); background: var(--paper); border-left: 4px solid var(--line); display: grid; gap: 6px; }
+.msg-direct { border-left-color: var(--snack); }
+.msg-admins { border-left-color: var(--berry); }
+.msg-head { display: flex; justify-content: space-between; gap: 12px; }
+
+.claim { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 0; border-top: 1px solid var(--line); }
+.jobs { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.jobs li { display: grid; gap: 4px; justify-items: start; }
+
+@media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }

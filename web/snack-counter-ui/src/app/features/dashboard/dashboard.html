@@ -1,0 +1,74 @@
+<div class="page">
+  <header class="page-head">
+    <h1>Snack boxes</h1>
+    <p>{{ greeting() }}</p>
+  </header>
+
+  @if (store.unreachable() && !store.offices().length) {
+    <div class="panel empty">
+      <h2>Can't reach the server</h2>
+      <p>Start the API with <code>dotnet run --project src/SnackCounter.Api --launch-profile in-memory</code>, then this page updates by itself.</p>
+    </div>
+  }
+
+  <div class="offices">
+    @for (office of store.offices(); track office.id) {
+      <section class="office" [attr.aria-labelledby]="'office-' + office.id">
+        <div class="office-head">
+          <h2 [id]="'office-' + office.id">{{ office.name }}</h2>
+          <span class="muted">{{ localTime(office) }} local time</span>
+        </div>
+
+        @for (counter of office.counters; track counter.id) {
+          <div class="counter">
+            @if (office.counters.length > 1) { <h3>{{ counter.name }}</h3> }
+            <app-box-status
+              [counterId]="counter.id"
+              [refill]="counter.activeRefill"
+              [timeZone]="office.timeZoneId"
+              (changed)="refresh()" />
+          </div>
+        }
+
+        <div class="budget">
+          <app-budget-strip [budget]="office.budget" />
+          @if (isAdminOf(office)) {
+            @if (editingBudgetFor() === office.id) {
+              <form class="budget-form" (ngSubmit)="saveBudget(office)">
+                <div class="field">
+                  <label [for]="'limit-' + office.id">Limit for this month ({{ office.currency }})</label>
+                  <input [id]="'limit-' + office.id" name="limit" type="number" min="0" step="100" required [(ngModel)]="budgetDraft" />
+                </div>
+                <div class="actions">
+                  <button type="submit" class="btn btn-primary btn-small">Save limit</button>
+                  <button type="button" class="btn btn-quiet btn-small" (click)="editingBudgetFor.set(null)">Cancel</button>
+                </div>
+              </form>
+            } @else {
+              <button type="button" class="link-button small" (click)="startBudgetEdit(office)">Change this month's limit</button>
+            }
+          }
+        </div>
+      </section>
+    }
+  </div>
+
+  @if (store.recent().length) {
+    <section class="recent" aria-labelledby="recent-title">
+      <h2 id="recent-title">Recent refills</h2>
+      <ul class="recent-list">
+        @for (r of store.recent(); track r.id) {
+          <li>
+            <a [routerLink]="['/refills', r.id]">
+              <span [class]="chipClass(chip(r.status))">{{ chip(r.status).label }}</span>
+              <span class="where">{{ officeName(r.officeId) }}</span>
+              <span class="who">{{ r.assigneeName ?? 'Nobody yet' }}</span>
+              <span class="amount">{{ money(r.amount) }}</span>
+              <span class="when muted">{{ when(r.closedAt ?? r.reportedAt) }}</span>
+            </a>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+</div>

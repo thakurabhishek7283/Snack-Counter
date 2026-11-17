@@ -1,0 +1,57 @@
+.offices {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr));
+  gap: 24px;
+}
+
+.office {
+  display: grid;
+  gap: 28px;
+  align-content: start;
+  padding: 28px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-top: 6px solid var(--ink);
+  border-radius: var(--radius-m);
+}
+
+.office-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.counter { display: grid; gap: 12px; }
+.budget { display: grid; gap: 12px; padding-top: 20px; border-top: 1px solid var(--line); }
+.budget-form { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+
+.link-button {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.empty { display: grid; gap: 8px; margin-bottom: 24px; }
+
+.recent { margin-top: 48px; }
+.recent h2 { margin-bottom: 12px; }
+.recent-list { list-style: none; margin: 0; padding: 0; border-top: 2px solid var(--ink); }
+.recent-list a {
+  display: grid;
+  grid-template-columns: 200px 1fr 1fr 120px 140px;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 4px;
+  border-bottom: 1px solid var(--line);
+  text-decoration: none;
+  font-variant-numeric: tabular-nums;
+}
+.recent-list a:hover { background: var(--surface); }
+.amount { text-align: right; }
+
+@media (max-width: 760px) {
+  .office { padding: 20px; }
+  .recent-list a { grid-template-columns: 1fr auto; }
+  .where, .when { display: none; }
+}

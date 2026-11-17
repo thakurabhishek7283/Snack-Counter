@@ -1,0 +1,68 @@
+<div class="page">
+  <header class="page-head">
+    <h1>Monthly spending</h1>
+    <form class="filters" (ngSubmit)="load()">
+      <div class="field">
+        <label for="month">Month</label>
+        <input id="month" name="month" type="month" [(ngModel)]="month" (change)="load()" />
+      </div>
+      <div class="field">
+        <label for="currency">Show total in</label>
+        <select id="currency" name="currency" [(ngModel)]="currency" (change)="load()">
+          <option value="NOK">NOK</option>
+          <option value="INR">INR</option>
+        </select>
+      </div>
+    </form>
+  </header>
+
+  @if (report(); as r) {
+    <section class="total" aria-live="polite">
+      <p class="total-amount">{{ money(r.total) }}</p>
+      <p class="muted">spent on snacks across both offices in {{ monthLabel() }}</p>
+    </section>
+
+    <div class="table-scroll">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Office</th>
+            <th class="num">Budget</th>
+            <th class="num">Spent</th>
+            <th class="num">Left</th>
+            <th class="num">Used</th>
+            <th class="num">Refills</th>
+            <th class="num">Average refill</th>
+            <th class="num">Empty to refilled</th>
+            <th class="num">Spent in {{ r.reportingCurrency }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (o of r.offices; track o.officeId) {
+            <tr>
+              <td><strong>{{ o.officeName }}</strong>
+                @if (o.overBudgetCount) { <div class="small over">{{ o.overBudgetCount }} over budget</div> }
+              </td>
+              <td class="num">{{ money(o.limit) }}</td>
+              <td class="num">{{ money(o.spent) }}</td>
+              <td class="num" [class.over]="o.remaining.amount < 0">{{ money(o.remaining) }}</td>
+              <td class="num">{{ o.percentUsed }}%</td>
+              <td class="num">{{ o.refillCount }}</td>
+              <td class="num">{{ money(o.averagePurchase) || 'None' }}</td>
+              <td class="num">{{ span(o.medianTimeToRefill) || 'None' }}</td>
+              <td class="num">{{ money(o.spentInReportingCurrency) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <p class="small muted note">
+      Each office is totalled in its own currency first, then converted once.
+      @for (rate of rates(); track rate[0]) { Rate used for {{ rate[0] }}: {{ rate[1] }}. }
+      "Empty to refilled" is the median time from the first report to the receipt.
+    </p>
+  } @else if (!loading()) {
+    <p class="muted">No report for this month yet.</p>
+  }
+</div>

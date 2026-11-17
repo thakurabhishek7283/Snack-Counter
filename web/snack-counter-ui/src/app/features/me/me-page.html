@@ -1,0 +1,83 @@
+<div class="page">
+  @if (session.me(); as me) {
+    <header class="page-head">
+      <h1>{{ me.displayName }}</h1>
+      <p>
+        {{ me.isOfficeAdmin ? 'Office admin' : me.isVolunteer ? 'Volunteer' : 'Colleague' }} in {{ me.homeOfficeName }},
+        usually in on {{ days(me.defaultOfficeDays) }}. Paid in {{ me.payrollCurrency }}.
+      </p>
+    </header>
+
+    <div class="layout">
+      <section class="panel" aria-labelledby="away-title">
+        <h2 id="away-title">When you're not in the office</h2>
+        <p class="muted">Nobody asks you to refill while you're away. If you're visiting another office, you can help there instead.</p>
+
+        <form class="away-form" (ngSubmit)="addAvailability()">
+          <div class="field">
+            <label for="kind">Where you'll be</label>
+            <select id="kind" name="kind" [(ngModel)]="kind">
+              @for (k of kinds; track k[0]) { <option [value]="k[0]">{{ k[1] }}</option> }
+            </select>
+          </div>
+          @if (kind === 'AtOffice') {
+            <div class="field">
+              <label for="office">Office</label>
+              <select id="office" name="office" [(ngModel)]="visitingOfficeId" required>
+                <option value="" disabled>Choose an office</option>
+                @for (o of otherOffices(); track o.id) { <option [value]="o.id">{{ o.name }}</option> }
+              </select>
+            </div>
+          }
+          <div class="form-row">
+            <div class="field"><label for="from">From</label><input id="from" name="from" type="date" required [(ngModel)]="from" /></div>
+            <div class="field"><label for="to">To</label><input id="to" name="to" type="date" required [(ngModel)]="to" [min]="from" /></div>
+          </div>
+          <div class="actions"><button type="submit" class="btn btn-primary">Add dates</button></div>
+        </form>
+
+        @if (availability().length) {
+          <ul class="away-list">
+            @for (a of availability(); track a.id) {
+              <li><strong>{{ kindText(a) }}</strong><span class="muted">{{ a.from }} to {{ a.to }}</span></li>
+            }
+          </ul>
+        }
+      </section>
+
+      <section aria-labelledby="claims-title">
+        <h2 id="claims-title">Your claims</h2>
+        @if (claims().length === 0) {
+          <p class="muted">No claims yet. When you upload a receipt, the claim goes to HR automatically and shows up here.</p>
+        } @else {
+          <p class="muted">{{ unpaidCount() === 0 ? 'Everything has been paid back.' : unpaidCount() + ' not paid back yet.' }}</p>
+          <div class="table-scroll">
+            <table class="table">
+              <thead><tr><th>Sent</th><th class="num">Amount</th><th>Status</th><th></th></tr></thead>
+              <tbody>
+                @for (c of claims(); track c.id) {
+                  <tr>
+                    <td><a [routerLink]="['/refills', c.refillId]">{{ when(c.createdAt) }}</a></td>
+                    <td class="num">{{ money(c.amount, 2) }}</td>
+                    <td>
+                      <span [class]="chipClass(claimChip(c.status, c.isOverdue))">{{ claimChip(c.status, c.isOverdue).label }}</span>
+                      @if (c.rejectionReason) { <div class="small muted">{{ c.rejectionReason }}</div> }
+                    </td>
+                    <td>
+                      @if (c.status === 'Rejected') {
+                        <label class="btn btn-small btn-quiet resubmit">
+                          Send a new receipt
+                          <input type="file" accept="image/*,application/pdf" class="visually-hidden" (change)="resubmit(c, $event)" />
+                        </label>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+    </div>
+  }
+</div>
